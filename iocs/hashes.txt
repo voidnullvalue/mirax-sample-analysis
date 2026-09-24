@@ -1,0 +1,26 @@
+# original archive
+1134f114ad3c9c263ca647b6e832afc8c0a6d7d8c132fb928cbfde44062e045d  0t46hk.7z
+
+# outer APK
+a80ab2d066ab34dadeccce369b4ad9e32df5c14dbfbdd9a96acede961d93562f  app.apk
+
+# embedded APK
+359e778809e20ddea85f4886fc7f62c3ad921a52f75d4bd2a449f12773857b6e  uknown/flykdzt9azm=.apk
+
+# encrypted hidden payload
+e1780c52774f4f7c3676e9352b373b08f9ea4b01875063d7089f28f81c0a2c22  HSb.jar.enc
+
+# decrypted hidden payload
+c37125e7933e78fb7b2bb3220e34088c8f194e82e6fe60b37c144fc918a1ed26  HSb.decrypted.jar
+
+# final DEX
+5300c169ca091f6b02910463e7b74fcf4c6d0a6a3aca565d74f6110d5761feed  payload/classes.dex
+5037a2819b5e676372809a70b7227bf9bc8f0b0d9a6b5f0a7109939dd0749888  payload/classes2.dex
+f461761189474e939fee59c1a719bc9cb0b7daed943b26d5b7a35b6a3c942355  payload/classes3.dex
+
+# outer APK alternate hashes
+sha1  6c0338be737e712c32e2d27c34097fe9574afed2
+md5   b44b372f88d18666eb2199136a436267
+
+# signing cert SHA-256, same on outer and embedded APK
+49:26:82:F8:77:60:7E:E9:9D:F2:DD:D2:BD:59:53:FD:72:7B:DF:6E:19:D3:97:DE:9D:BB:AF:D5:82:BC:AD:75
