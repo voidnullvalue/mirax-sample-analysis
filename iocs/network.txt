@@ -1,0 +1,19 @@
+# domain
+vbnsajiqlas.com
+
+# C2 reconstructed from the final payload
+wss://vbnsajiqlas.com:27911/control?sessionId=...
+wss://vbnsajiqlas.com:45598/data?sessionId=...
+https://vbnsajiqlas.com:31192/api/device/poll
+
+# ports
+27911/tcp  control websocket
+45598/tcp  data websocket
+31192/tcp  HTTP polling fallback
+
+# protocol strings recovered from payload
+AndroidClient-Control/1.0
+AndroidClient-Data/1.0
+AndroidClient-HttpPoll/1.0
+X-Channel-Type
+X-Session-ID
