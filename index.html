@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>a friend lost $101. then he sent me the APK.</title>
+  <meta name="description" content="A friend on IRC sent me an APK he said came from a Prolific survey after his PayPal account was compromised for $101. I pulled it apart and found a multistage Mirax/Cifrat-lineage Android RAT.">
+  <meta name="theme-color" content="#0a0c0b">
+  <meta property="og:title" content="a friend lost $101. then he sent me the APK.">
+  <meta property="og:description" content="434 fake DEX files, another APK inside the APK, an RC4-encrypted JAR, and finally an Android RAT with credential overlays, keylogging, SMS theft, VNC, camera control, SOCKS5, and ADB shell support.">
+  <meta property="og:type" content="article">
+  <meta name="devvoid:post" content="1">
+  <meta name="devvoid:title" content="a friend lost $101. then he sent me the APK.">
+  <meta name="devvoid:summary" content="A friend on IRC sent me an APK he said came from a Prolific survey after $101 disappeared from his PayPal. Under the junk was a multistage Mirax/Cifrat-lineage Android RAT.">
+  <meta name="devvoid:published" content="2026-09-28T23:53:00Z">
+  <meta name="devvoid:tags" content="android, malware, reverse-engineering, mirax, cifrat, rat, security">
+  <meta name="devvoid:url" content="https://voidnullvalue.github.io/mirax-sample-analysis/">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a0c0b;
+      --panel: #0f1210;
+      --text: #d9e0d8;
+      --muted: #7f8c80;
+      --dim: #566057;
+      --accent: #9be564;
+      --accent-2: #f0a35e;
+      --line: #232a24;
+      --code: #c7d6c7;
+      --max: 780px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 16px;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover { color: #c4ff9d; }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 44px 0 30px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .prompt {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .prompt .host { color: var(--accent); }
+    .prompt .path { color: var(--accent-2); }
+
+    h1, h2 {
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 20ch;
+      font-size: clamp(2rem, 7vw, 3.6rem);
+      font-weight: 700;
+      color: #eef5ed;
+    }
+
+    .dek {
+      margin: 22px 0 0;
+      max-width: 65ch;
+      color: var(--muted);
+      font-size: 1.03rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 22px;
+      color: var(--dim);
+      font-size: 13px;
+    }
+
+    main { padding: 32px 0 64px; }
+
+    h2 {
+      margin: 3.2rem 0 1rem;
+      font-size: 1.35rem;
+      color: #e7eee6;
+    }
+
+    h2::before {
+      content: "## ";
+      color: var(--accent);
+    }
+
+    p { margin: 1rem 0; }
+    strong { color: #f0f4ef; }
+
+    pre {
+      overflow-x: auto;
+      margin: 1.4rem 0;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--panel);
+      color: var(--code);
+      line-height: 1.45;
+      font-size: 14px;
+      tab-size: 2;
+    }
+
+    code {
+      font-family: inherit;
+      color: var(--code);
+    }
+
+    p code {
+      padding: 0.12rem 0.3rem;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--panel);
+      font-size: 0.94em;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+      color: #e4eae3;
+    }
+
+    .note {
+      margin: 1.5rem 0;
+      padding: 0.2rem 0 0.2rem 1rem;
+      border-left: 2px solid var(--accent);
+      color: #edf3ec;
+    }
+
+    footer {
+      padding: 24px 0 48px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.65ch;
+      height: 1.05em;
+      margin-left: 0.2ch;
+      vertical-align: -0.14em;
+      background: var(--accent);
+      animation: blink 1.15s steps(1, end) infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cursor { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+
+    @media (max-width: 560px) {
+      body { font-size: 15px; }
+      header { padding-top: 28px; }
+      pre { margin-left: -8px; margin-right: -8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="prompt"><span class="host">void@localhost</span>:<span class="path">~/mirax-sample-analysis</span>$ strings suspicious.apk | head</p>
+      <h1>a friend lost $101. then he sent me the APK.<span class="cursor" aria-hidden="true"></span></h1>
+      <p class="dek">he said it came from a survey on Prolific. his PayPal account got compromised and somebody took $101. he asked me if the APK was bad. yes. it was very fucking bad.</p>
+      <div class="meta">
+        <span>September 28, 2026</span>
+        <span>Android / static analysis</span>
+        <span>Mirax / Cifrat lineage</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <article>
+      <p class="lede">this started on IRC with a friend asking me to look at an APK.</p>
+
+      <p>he said he got it through the Prolific survey site.</p>
+
+      <p>afterward his PayPal account was compromised and $101 disappeared.</p>
+
+      <p>he wanted to know if the app had anything to do with it.</p>
+
+      <p>that last part matters because I cannot prove a payment-account theft from an APK sitting on disk.</p>
+
+      <p>I did not have PayPal logs. I did not have the attacker's server. I did not execute the sample and watch somebody steal exactly $101.</p>
+
+      <p>what I did have was the APK.</p>
+
+      <p>and I can say, without any interesting amount of ambiguity, that the APK is malware.</p>
+
+      <p>not "this looks sketchy."</p>
+
+      <p>not "it asks for a few permissions I don't like."</p>
+
+      <p>it is a multistage Android RAT with credential overlays, keylogging, SMS collection, remote screen control, camera access, uninstall protection, SOCKS5 proxying, and an ADB shell implementation.</p>
+
+      <p>so that was a fun thing to receive over IRC.</p>
+
+      <h2>first problem: the APK did not want to be an APK</h2>
+
+      <p>the original file was a 7z archive containing <code>app.apk</code>.</p>
+
+      <p>normally at this point you unzip it, feed it to the usual Android tooling, and start reading.</p>
+
+      <p>this one immediately started being an asshole.</p>
+
+      <p>normal ZIP parsing choked on malformed central-directory extra fields.</p>
+
+      <p>then the archive listing claimed there were <strong>434</strong> files named like <code>classes00*.dex</code>, each conveniently advertised as exactly 1 MiB.</p>
+
+      <p>there were piles of junk-looking assets too.</p>
+
+      <p>blindly asking a decompiler to eat all of that is basically volunteering to waste your own time.</p>
+
+<pre><code>classes001.dex    1048576
+classes002.dex    1048576
+classes003.dex    1048576
+...
+[431 more pieces of bullshit]</code></pre>
+
+      <p>the actual outer code was just three real DEX files.</p>
+
+<pre><code>classes.dex
+classes2.dex
+classes3.dex</code></pre>
+
+      <p>parse the local file headers, look for actual DEX magic, ignore the advertised garbage, and the thing becomes substantially less mysterious.</p>
+
+      <p>this is not sophisticated in the sense of being elegant.</p>
+
+      <p>it is sophisticated in the sense that it knows a lot of analysis tooling will obediently walk directly into the tarpit.</p>
+
+      <h2>of course there was another APK inside the APK</h2>
+
+      <p>the real outer code eventually led to this:</p>
+
+<pre><code>uknown/flykdzt9azm=.apk</code></pre>
+
+      <p>yes, <code>uknown</code>.</p>
+
+      <p>package name:</p>
+
+<pre><code>io.xbslmmmp.clientf92mf</code></pre>
+
+      <p>the outer package was:</p>
+
+<pre><code>com.harvdouh.clienttdkar</code></pre>
+
+      <p>both were signed with the same certificate, so this was not some random library accidentally bundled into the first app.</p>
+
+      <p>the second manifest was already enough to stop pretending this was normal software.</p>
+
+      <p>camera. SMS read/write/send/receive. notification listener. accessibility service. device admin. boot receivers. media projection. an overlay process. separate UI task affinities for pattern, PIN, and password screens.</p>
+
+      <p>subtle.</p>
+
+      <h2>then the second APK had another payload inside it</h2>
+
+      <p>inside stage two was <code>HSb.jar</code>.</p>
+
+      <p>encrypted.</p>
+
+      <p>the unpacker was kind enough to contain both the filename and the key.</p>
+
+<pre><code>payload: HSb.jar
+key:     IdCB</code></pre>
+
+      <p>the routine is RC4.</p>
+
+      <p>decrypt the blob with <code>IdCB</code> and suddenly <code>HSb.jar</code> is a completely valid JAR containing three more DEX files.</p>
+
+<pre><code>0t46hk.7z
+  -> app.apk
+     -> malformed/padded APK
+     -> 434 fake DEX entries
+     -> real outer DEX
+        -> uknown/flykdzt9azm=.apk
+           -> io.xbslmmmp.clientf92mf
+           -> encrypted HSb.jar
+              -> RC4 key: IdCB
+              -> decrypted HSb.jar
+                 -> classes.dex
+                 -> classes2.dex
+                 -> classes3.dex
+                    -> RAT</code></pre>
+
+      <p>at this point I was done fighting the packaging and could finally look at what the thing actually does.</p>
+
+      <h2>this is where the fucking thing stopped being coy</h2>
+
+      <p>most of the interesting custom RAT code is in the recovered <code>classes2.dex</code>.</p>
+
+      <p>and the strings are not exactly trying to preserve plausible deniability.</p>
+
+<pre><code>addHtmlInjectionConfig
+collectSmsNow
+enableUninstallProtection
+disableUninstallProtection
+startVncScreenSharing
+startCamera
+startSmsCollection
+getKeyguardInfo
+socks5_enable
+socks5_status_request
+KeylogBatch
+KeylogEntry
+Only adb shell commands are supported</code></pre>
+
+      <p>that is about the point where "is this malware" stops being an interesting question.</p>
+
+      <p>the HTML injection system is for credential overlays. it can receive injection configuration and collect data submitted through fake UI.</p>
+
+      <p>the keylogger is not me inferring something from an Accessibility permission. there are actual <code>KeylogBatch</code> and <code>KeylogEntry</code> implementations.</p>
+
+      <p>SMS theft is backed by the permissions, receivers, and explicit collection commands.</p>
+
+      <p>screen sharing is explicit.</p>
+
+      <p>camera control is explicit.</p>
+
+      <p>uninstall protection is explicit.</p>
+
+      <p>there is also a SOCKS5 tunnel manager, meaning the infected phone can be turned into a residential proxy node for somebody else's traffic.</p>
+
+      <p>because apparently stealing your credentials and driving your phone remotely was not enough utility per victim.</p>
+
+      <h2>and yes, it has a shell</h2>
+
+      <p>this build also contains a substantial wireless ADB implementation.</p>
+
+      <p>not just a string containing the word adb. an actual Java ADB client, pairing/identity handling, and code paths for running shell commands.</p>
+
+<pre><code>:wireless-adb-identity:v1
+ADB shell command cannot be blank
+ADB shell command exceeds 500 characters
+ADB shell command failed
+ADB shell command must be a single line
+ADB shell command returned no data
+Only adb shell commands are supported</code></pre>
+
+      <p>if the malware gets the device into the state it expects, that is a real remote shell capability.</p>
+
+      <p>good.</p>
+
+      <p>great.</p>
+
+      <h2>where it phones home</h2>
+
+      <p>the recovered config points at <code>vbnsajiqlas.com</code>.</p>
+
+      <p>control and bulk data are split across separate WebSockets, with HTTPS polling as a fallback.</p>
+
+<pre><code>wss://vbnsajiqlas.com:27911/control?sessionId=...
+wss://vbnsajiqlas.com:45598/data?sessionId=...
+https://vbnsajiqlas.com:31192/api/device/poll</code></pre>
+
+      <p>protocol strings include:</p>
+
+<pre><code>AndroidClient-Control/1.0
+AndroidClient-Data/1.0
+AndroidClient-HttpPoll/1.0
+X-Channel-Type
+X-Session-ID</code></pre>
+
+      <p>I did not connect to any of it.</p>
+
+      <p>this was static analysis. I wanted to know what the sample was, not introduce myself to the operator.</p>
+
+      <h2>so what family is it</h2>
+
+      <p>high confidence: Mirax/Cifrat lineage.</p>
+
+      <p>Cleafy's <a href="https://www.cleafy.com/cleafy-labs/mirax-a-new-android-rat-turning-infected-devices-into-potential-residential-proxy-nodes">Mirax writeup</a> documents the same split control/data WebSocket design and the same unusually specific command vocabulary.</p>
+
+      <p><a href="https://cert.pl/en/posts/2026/04/cifrat-analysis/">CERT Polska's Cifrat analysis</a> describes an extremely similar chain: multistage Android dropper, embedded second APK, encrypted final payload, Accessibility abuse, HTML injection, SMS theft, camera, screen streaming, SOCKS5, and dual WebSocket C2.</p>
+
+      <p>their published samples use different packages, hashes, encryption keys, and C2.</p>
+
+      <p>so I am not claiming I found one of their exact APKs.</p>
+
+      <p>I did not.</p>
+
+      <p>this looks like another build/repack/campaign instance from the same family.</p>
+
+      <h2>what about persistence</h2>
+
+      <p>it has plenty of normal Android userspace persistence.</p>
+
+      <p>boot receivers. Accessibility. Device Admin. battery-optimization bypass requests. WorkManager/system jobs. uninstall protection.</p>
+
+      <p>it wants to stay installed and it has multiple ways to make ordinary removal annoying.</p>
+
+      <p>I did <strong>not</strong> find evidence in the recovered sample of boot image, recovery, <code>/system</code>, <code>/vendor</code>, or firmware modification.</p>
+
+<pre><code>reboot:                 survives
+ordinary user removal: actively resists it
+genuine factory reset: should remove it
+full trusted reflash:  stronger cleanup if system compromise is suspected</code></pre>
+
+      <p>that is an assessment of this code, not a metaphysical guarantee that no separate exploit could ever have been used on the phone.</p>
+
+      <h2>back to the $101</h2>
+
+      <p>can I prove this exact APK stole exactly $101 from his PayPal account?</p>
+
+      <p>no.</p>
+
+      <p>that would be a much stronger claim than the evidence supports.</p>
+
+      <p>can I prove the thing he sent me is built to steal credentials, collect SMS, watch the screen, control the screen, access the camera, resist removal, proxy traffic, and potentially run ADB shell commands?</p>
+
+      <p>yes.</p>
+
+      <p>so his story did not end with me saying "probably some harmless survey wrapper."</p>
+
+      <p>the malware has exactly the kind of capabilities that make an account compromise unsurprising.</p>
+
+      <p>whether that is what happened to his PayPal specifically would require evidence from the infected phone, the account, or the operator side that I do not have.</p>
+
+      <h2>what I actually published</h2>
+
+      <p>I am not putting the live malware sample in the repo.</p>
+
+      <p>there is no reason to make this easier for somebody who just wants the APK.</p>
+
+      <p>the repo contains the hashes, IOCs, unpacking notes, and the full static report.</p>
+
+      <div class="note">
+        <p><a href="https://github.com/voidnullvalue/mirax-sample-analysis/blob/main/report.md">full static analysis report</a></p>
+        <p><a href="https://github.com/voidnullvalue/mirax-sample-analysis/blob/main/notes/unpacking.md">unpacking notes</a></p>
+        <p><a href="https://github.com/voidnullvalue/mirax-sample-analysis/tree/main/iocs">IOCs</a></p>
+      </div>
+
+      <p>my friend asked me one simple question.</p>
+
+      <p>is this APK bad?</p>
+
+      <p>yes.</p>
+
+      <p>extremely.</p>
+    </article>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>void@localhost:~/mirax-sample-analysis$ </span><a href="https://voidnullvalue.github.io/Enter-dev-void/">Enter /dev/void/</a><span> | </span><a href="https://github.com/voidnullvalue/mirax-sample-analysis">source</a><span> | </span><a href="xmpp:adentedcan@suchat.org">xmpp</a><span> | </span><a href="https://github.com/voidnullvalue">github</a><span> | </span><a href="mailto:simplelogin-newsletter.elves713@simplelogin.com">email</a><span> </span><span class="cursor" aria-hidden="true"></span>
+    </div>
+  </footer>
+</body>
+</html>
