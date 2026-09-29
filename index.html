@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>a friend lost $101. then he sent me the APK.</title>
-  <meta name="description" content="A friend on IRC sent me an APK he said came from a Prolific survey after his PayPal account was compromised for $101. I pulled it apart and found a multistage Mirax/Cifrat-lineage Android RAT.">
+  <title>a friend got burned by a fake fitness tracker. then he sent me the APK.</title>
+  <meta name="description" content="A friend encountered a fake fitness-tracker APK during a paid research-study flow he accessed through Prolific, was redirected through a fake Google Play page, and later reported $101 stolen from PayPal. I pulled the APK apart and found a multistage Mirax/Cifrat-lineage Android RAT.">
   <meta name="theme-color" content="#0a0c0b">
-  <meta property="og:title" content="a friend lost $101. then he sent me the APK.">
-  <meta property="og:description" content="434 fake DEX files, another APK inside the APK, an RC4-encrypted JAR, and finally an Android RAT with credential overlays, keylogging, SMS theft, VNC, camera control, SOCKS5, and ADB shell support.">
+  <meta property="og:title" content="a friend got burned by a fake fitness tracker. then he sent me the APK.">
+  <meta property="og:description" content="Fake Google Play, a fake fitness tracker, 434 decoy DEX files, another APK inside the APK, an RC4-encrypted JAR, and finally a Mirax/Cifrat-lineage Android RAT.">
   <meta property="og:type" content="article">
   <meta name="devvoid:post" content="1">
-  <meta name="devvoid:title" content="a friend lost $101. then he sent me the APK.">
-  <meta name="devvoid:summary" content="A friend on IRC sent me an APK he said came from a Prolific survey after $101 disappeared from his PayPal. Under the junk was a multistage Mirax/Cifrat-lineage Android RAT.">
+  <meta name="devvoid:title" content="a friend got burned by a fake fitness tracker. then he sent me the APK.">
+  <meta name="devvoid:summary" content="A friend encountered a fake fitness-tracker APK through a paid study flow he accessed via Prolific, then reported $101 stolen from PayPal. Under the junk was a multistage Mirax/Cifrat-lineage Android RAT.">
   <meta name="devvoid:published" content="2026-09-28T23:53:00Z">
   <meta name="devvoid:tags" content="android, malware, reverse-engineering, mirax, cifrat, rat, security">
   <meta name="devvoid:url" content="https://voidnullvalue.github.io/mirax-sample-analysis/">
@@ -192,8 +192,8 @@
   <header>
     <div class="wrap">
       <p class="prompt"><span class="host">void@localhost</span>:<span class="path">~/mirax-sample-analysis</span>$ strings suspicious.apk | head</p>
-      <h1>a friend lost $101. then he sent me the APK.<span class="cursor" aria-hidden="true"></span></h1>
-      <p class="dek">he said it came from a survey on Prolific. his PayPal account got compromised and somebody took $101. he asked me if the APK was bad. yes. it was very fucking bad.</p>
+      <h1>a friend got burned by a fake fitness tracker. then he sent me the APK.<span class="cursor" aria-hidden="true"></span></h1>
+      <p class="dek">a paid research study turned into a fake Google Play page, a fake fitness tracker, fake Google Play Services, a fake Android update, and eventually $101 missing from PayPal. he still had the APK. I like malicious APKs.</p>
       <div class="meta">
         <span>September 28, 2026</span>
         <span>Android / static analysis</span>
@@ -204,33 +204,80 @@
 
   <main class="wrap">
     <article>
-      <p class="lede">this started on IRC with a friend asking me to look at an APK.</p>
+      <p class="lede">this started on IRC with a friend telling me, more or less, "I fell for something stupid and I still have the APK."</p>
 
-      <p>he said he got it through the Prolific survey site.</p>
+      <p>he had already figured out it was a scam by the time he came to me.</p>
 
-      <p>afterward his PayPal account was compromised and $101 disappeared.</p>
+      <p>the part he wanted from me was the malware analysis.</p>
 
-      <p>he wanted to know if the app had anything to do with it.</p>
+      <p>what the fuck did he actually install, what could it do, and how bad did he need to treat the phone afterward.</p>
 
-      <p>that last part matters because I cannot prove a payment-account theft from an APK sitting on disk.</p>
+      <h2>what actually happened</h2>
 
-      <p>I did not have PayPal logs. I did not have the attacker's server. I did not execute the sample and watch somebody steal exactly $101.</p>
+      <p>he uses Prolific to do paid research studies.</p>
 
-      <p>what I did have was the APK.</p>
+      <p>according to him, this started from one of those study flows.</p>
 
-      <p>and I can say, without any interesting amount of ambiguity, that the APK is malware.</p>
+      <p>he had literally just completed another app-download study shortly before this one. that one was legitimate, worked, paid, and did not ask him to hand his phone to Satan.</p>
 
-      <p>not "this looks sketchy."</p>
+      <p>then he got another offer. about six bucks for maybe five minutes.</p>
 
-      <p>not "it asks for a few permissions I don't like."</p>
+      <p>that one redirected him to a fake Google Play landing page.</p>
 
-      <p>it is a multistage Android RAT with credential overlays, keylogging, SMS collection, remote screen control, camera access, uninstall protection, SOCKS5 proxying, and an ADB shell implementation.</p>
+      <p>he hesitated because he knew that looked wrong.</p>
 
-      <p>so that was a fun thing to receive over IRC.</p>
+      <p>then the very human part happened: he had just done basically the same kind of study successfully, it appeared to be coming through a service he trusted to screen this shit, and the reward was enough to make "this is probably fine" win over "this looks fucking wrong."</p>
+
+      <p>the app presented itself as a fitness tracker.</p>
+
+      <p>then it started doing the classic escalation routine.</p>
+
+<pre><code>install fitness tracker
+  -> "install Google Play Services"
+     -> "update Android"
+        -> keep granting the thing more control</code></pre>
+
+      <p>by the time he realized how bad it was, the apps had already been on the phone.</p>
+
+      <p>he later reported that $101 was taken from his PayPal account.</p>
+
+      <p>PayPal closed his unauthorized-access case, apparently because the transaction looked like it came from his phone and location.</p>
+
+      <p>he had already filed complaints elsewhere and was pissed off, but what he still had that was actually useful to me was the original archive.</p>
+
+<pre><code>0t46hk.7z</code></pre>
+
+      <p>he sent it over IRC and asked me to tear it apart.</p>
+
+      <p>important distinction here: I am <strong>not</strong> claiming Prolific wrote this malware, knowingly distributed it, or was the operator.</p>
+
+      <p>the fact I have is his account that the malicious flow began from a paid study he accessed through Prolific and then redirected him to a fake Google Play page.</p>
+
+      <p>it could have been a malicious study operator, a compromised account, impersonation, or something else upstream. I did not investigate that part of the chain.</p>
+
+      <p>I investigated the APK.</p>
+
+      <h2>my initial reaction was basically "ooo malicious APKs"</h2>
+
+      <p>he had already opened both the outer APK and the embedded one in JADX and noticed enough weird shit to know this was not going to be a normal app.</p>
+
+      <p>I opened it and immediately saw the second APK too.</p>
+
+      <p>then the decoy DEX files.</p>
+
+      <p>he asked whether he should just run the thing in Android Studio and watch the traffic.</p>
+
+      <p>maybe eventually.</p>
+
+      <p>but malware knows emulators exist, and I still had a lot of static surface left before I needed to execute anything.</p>
+
+      <p>so I stayed static.</p>
+
+      <p>that turned out to be enough.</p>
 
       <h2>first problem: the APK did not want to be an APK</h2>
 
-      <p>the original file was a 7z archive containing <code>app.apk</code>.</p>
+      <p>the archive contained <code>app.apk</code>.</p>
 
       <p>normally at this point you unzip it, feed it to the usual Android tooling, and start reading.</p>
 
@@ -398,6 +445,14 @@ X-Session-ID</code></pre>
 
       <p>this was static analysis. I wanted to know what the sample was, not introduce myself to the operator.</p>
 
+      <p>once I had the C2 and the recovered command set, I sent my friend the domain with a giant "do not visit this" attached to it and told him to factory reset the phone.</p>
+
+      <p>he had already uninstalled the apps in safe mode.</p>
+
+      <p>I still told him to reset it, set it up as a new device instead of restoring blindly from backup, and change account credentials from a trusted device.</p>
+
+      <p>with a RAT like this, "I uninstalled the visible app" is not where I would choose to stop.</p>
+
       <h2>so what family is it</h2>
 
       <p>high confidence: Mirax/Cifrat lineage.</p>
@@ -413,6 +468,10 @@ X-Session-ID</code></pre>
       <p>I did not.</p>
 
       <p>this looks like another build/repack/campaign instance from the same family.</p>
+
+      <p>which was actually useful: the sample my friend sent me did not match the exact outer APK hash I found in the public writeups.</p>
+
+      <p>so at least I got something interesting out of the whole mess.</p>
 
       <h2>what about persistence</h2>
 
@@ -433,21 +492,35 @@ full trusted reflash:  stronger cleanup if system compromise is suspected</code>
 
       <h2>back to the $101</h2>
 
-      <p>can I prove this exact APK stole exactly $101 from his PayPal account?</p>
+      <p>the question was never really "is this APK sketchy."</p>
 
-      <p>no.</p>
+      <p>by the time he sent it to me he already knew he had been scammed.</p>
 
-      <p>that would be a much stronger claim than the evidence supports.</p>
+      <p>the useful questions were what the APK actually was and whether it had capabilities that could plausibly explain an account compromise performed from his own phone.</p>
 
-      <p>can I prove the thing he sent me is built to steal credentials, collect SMS, watch the screen, control the screen, access the camera, resist removal, proxy traffic, and potentially run ADB shell commands?</p>
+      <p>on that second part: yes, absolutely.</p>
 
-      <p>yes.</p>
+      <p>credential overlays, keylogging, SMS collection, screen capture, remote interaction, notification access, and a RAT control channel are exactly the sort of capabilities that make "the transaction came from your phone" a pretty shitty reassurance.</p>
 
-      <p>so his story did not end with me saying "probably some harmless survey wrapper."</p>
+      <p>but I still cannot prove from static analysis alone that this exact APK caused that exact $101 PayPal transaction.</p>
 
-      <p>the malware has exactly the kind of capabilities that make an account compromise unsurprising.</p>
+      <p>I do not have the PayPal session logs, the infected phone's historical telemetry, or the operator-side records.</p>
 
-      <p>whether that is what happened to his PayPal specifically would require evidence from the infected phone, the account, or the operator side that I do not have.</p>
+      <p>so the clean version is:</p>
+
+<pre><code>reported incident:
+  victim installs fake fitness-tracker / fake Play Services chain
+  victim later reports $101 stolen from PayPal
+
+what I established:
+  supplied APK is a multistage Android RAT
+  RAT has credential-theft and remote-control capability
+  sample is high-confidence Mirax/Cifrat lineage
+
+what I did not establish:
+  forensic attribution of the specific $101 transaction</code></pre>
+
+      <p>that is as far as the evidence goes.</p>
 
       <h2>what I actually published</h2>
 
@@ -463,13 +536,17 @@ full trusted reflash:  stronger cleanup if system compromise is suspected</code>
         <p><a href="https://github.com/voidnullvalue/mirax-sample-analysis/tree/main/iocs">IOCs</a></p>
       </div>
 
-      <p>my friend asked me one simple question.</p>
+      <p>he came to me embarrassed because he knew better and clicked through it anyway.</p>
 
-      <p>is this APK bad?</p>
+      <p>honestly, that part is not technically interesting.</p>
 
-      <p>yes.</p>
+      <p>people get tired. people are distracted. a thing resembles something legitimate they did ten minutes ago. a trusted platform lowers the alarm threshold. six bucks for five minutes sounds harmless.</p>
 
-      <p>extremely.</p>
+      <p>then some asshole has a RAT on your phone.</p>
+
+      <p>the technically interesting part was what was hiding under the fake fitness tracker.</p>
+
+      <p>and that part was extremely fucking bad.</p>
     </article>
   </main>
 
